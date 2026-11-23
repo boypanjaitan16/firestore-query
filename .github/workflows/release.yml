@@ -1,0 +1,46 @@
+name: Release
+
+# Publishes a GitHub Release to npm through trusted publishing (OIDC): no npm
+# token is stored, and the package gets a provenance statement. Configure the
+# trusted publisher on npmjs.com for this repository and this workflow file.
+
+on:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: pnpm/action-setup@v4
+      # Trusted publishing needs npm 11.5.1 or later, which Node 24 ships.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm check:package
+      # 0.1.0 was published by hand (trusted publishing needs an existing
+      # package), so a release whose version is already on npm is skipped.
+      - name: Check whether this version is on npm
+        id: published
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "@boyboni/firestore-query@${version}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::@boyboni/firestore-query@${version} is already on npm; skipping publish."
+          fi
+      - name: Publish
+        if: steps.published.outputs.exists != 'true'
+        run: npm publish --provenance --access public --ignore-scripts

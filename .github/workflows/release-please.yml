@@ -1,0 +1,30 @@
+name: Release Please
+
+# Keeps a Release PR open that bumps the version in package.json and
+# CHANGELOG.md from the Conventional Commits merged into main. Merging that PR
+# tags the commit (v1.2.3) and publishes a GitHub Release, which release.yml
+# turns into an npm publish.
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# The RELEASE_PLEASE_TOKEN secret does the writing, so the Release PR runs CI
+# like any other pull request, and its GitHub Release triggers release.yml.
+permissions:
+  contents: read
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
