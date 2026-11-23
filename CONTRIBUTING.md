@@ -33,6 +33,6 @@ Run the emulator suite when you change realtime listeners, pagination, invalidat
 
 ### One-time setup (maintainer)
 
-1. **First publish (0.1.0):** npm trusted publishing needs an existing package. Run `npm login` as a member of the `boyboni` scope, check out tag `v0.1.0`, and run `pnpm publish --access public`. `prepublishOnly` runs every check first.
+1. **First publish (0.1.0):** npm trusted publishing needs an existing package. Run `npm login` as a member of the `boyboni` scope, check out tag `v0.1.0`, and run `npm publish --access public --provenance=false`. Provenance needs a CI provider, so a publish from a laptop goes without it, and `npm` (unlike `pnpm publish`) does not refuse a detached tag checkout. `prepublishOnly` runs every check first. Done for 0.1.0 on 2026-11-23.
 2. **Trusted publisher:** on npmjs.com, open the package → Settings → Trusted publishing → GitHub Actions. Enter repository `boypanjaitan16/firestore-query` and workflow `release.yml`. Then set publishing access to require two-factor authentication and disallow tokens.
 3. **Release PR token:** add a repository secret `RELEASE_PLEASE_TOKEN`, a fine-grained personal access token for this repository with Contents and Pull requests read and write, so the Release PR runs CI.
